@@ -7,7 +7,6 @@ from transformers import WhisperProcessor
 class WhisperPrePostProcessor(WhisperProcessor):
     def chunk_iter_with_batch(self, inputs, chunk_len, stride_left, stride_right, batch_size):
         inputs_len = inputs.shape[0]
-        step = chunk_len - stride_left - stride_right
 
         all_chunk_start_idx = np.arange(0, inputs_len, step)
         num_samples = len(all_chunk_start_idx)
@@ -22,7 +21,6 @@ class WhisperPrePostProcessor(WhisperProcessor):
 
             chunks = [inputs[chunk_start:chunk_end] for chunk_start, chunk_end in zip(chunk_start_idx, chunk_end_idx)]
             processed = self.feature_extractor(
-                chunks, sampling_rate=self.feature_extractor.sampling_rate, return_tensors="np"
             )
 
             _stride_left = np.where(chunk_start_idx == 0, 0, stride_left)
@@ -55,7 +53,6 @@ class WhisperPrePostProcessor(WhisperProcessor):
                 # Remove path which will not be used from `datasets`.
                 inputs.pop("path", None)
                 _inputs = inputs.pop("array", None)
-            in_sampling_rate = inputs.pop("sampling_rate")
             inputs = _inputs
 
             if in_sampling_rate != self.feature_extractor.sampling_rate:
